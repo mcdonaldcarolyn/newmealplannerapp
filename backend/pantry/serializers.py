@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import PantryItem, Location 
+from .models import PantryItem, Location, GroceryItem
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -9,7 +9,9 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 class PantryItemSerializer(serializers.ModelSerializer):
-    location = LocationSerializer(read_only=True)
+    class Meta:
+        model = PantryItem
+        fields = '__all__'
 
     # This allows creating/updating pantry items with a location ID
     location_id = serializers.PrimaryKeyRelatedField(
@@ -23,3 +25,8 @@ class PantryItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PantryItem
         fields = ['id', 'name', 'quantity', 'unit', 'location', 'location_id']
+
+class GroceryItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GroceryItem
+        fields = '__all__'

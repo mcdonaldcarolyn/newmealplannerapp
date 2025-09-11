@@ -57,7 +57,7 @@ export default function RecipeDetail() {
     return pantryNames.has(normalizeName(name));
   };
 
-  const addToGrocery = (ing) => {
+  const addToGrocery = async(ing) => {
     const uniqueKey = `${id}-${ing.id || Date.now()}-${normalizeName(
         ing.name || ing.nameClean || ing.original
       )}`;
@@ -70,37 +70,59 @@ export default function RecipeDetail() {
       recipeId: Number(id),
       checked: false,
     };
-    // avoid duplicates
-    if (!grocery.find((g) => g.id === item.id)) {
-      const next = [...grocery, item];
-      setGrocery(next);
-      localStorage.setItem("groceryList", JSON.stringify(next));
-    }
+    try {
+        const res = await axios.post("http://127.0.0.1:8000/api/grocery/", item);
+
+        // avoid duplicates in React state
+        if (!grocery.find((g) => g.id === res.data.id)) {
+          setGrocery([...grocery, res.data]);
+        }
+      } catch (e) {
+        console.error("Error adding to grocery:", e);
+      } 
   };
 
-  const addAllMissing = () => {
-    if (!recipe?.extendedIngredients) return;
-    const next = [...grocery];
-    for (const ing of recipe.extendedIngredients) {
-        if (!ingredientInPantry(ing)) {
-            const uniqueKey = `${id}-${ing.id || Date.now()}-${normalizeName(
-              ing.name || ing.nameClean || ""
-            )}`;
-      const item = {
-        id: uniqueKey,
-        name: ing.name || ing.nameClean || ing.original,
-        amount: ing.amount,
-        unit: ing.unit,
-        recipeId: Number(id),
-        checked: false,
-      };
-      if (!next.find((g) => g.id === item.id)) next.push(item);
+    const addToMealPlan = async () => {
+    try {
+      await axios.post("http://127.0.0.1:8000/api/mealplan/", {
+        date: new Date().toISOString().split("T")[0], // today by default
+        recipe_id: recipe.id,
+        title: recipe.title,
+        image: recipe.image,
+      });
+      alert("Recipe saved to meal plan!");
+    } catch (err) {
+      console.error("Error saving meal plan:", err);
     }
-  }
-          
-    setGrocery(next);
-    localStorage.setItem("groceryList", JSON.stringify(next));
   };
+  
+  const addAllMissing = async() => {
+    if (!recipe?.extendedIngredients) return;
+
+    try {
+    const newItems = [];
+    for (const ing of recipe.extendedIngredients) {
+      if (!ingredientInPantry(ing)) {
+        const item = {
+          name: ing.name || ing.nameClean || ing.original,
+          amount: ing.amount,
+          unit: ing.unit,
+          checked: false,
+        };
+
+        // Only add if not already in list
+        if (!grocery.find((g) => g.name === item.name)) {
+          const res = await axios.post("http://127.0.0.1:8000/api/grocery/", item);
+          newItems.push(res.data);
+        }
+      }
+  }
+    setGrocery([...grocery, ...newItems]);
+        } catch (e) {
+        console.error("Error adding missing items:", e);
+        }
+    };
+   
 
   if (error) return <p className="p-4 text-red-700">{error}</p>;
   if (!recipe) return <p className="p-4">Loading…</p>;
@@ -121,6 +143,13 @@ export default function RecipeDetail() {
         >
           Add all missing to Grocery
         </button>
+        <button
+             onClick={addToMealPlan}
+                className="bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700"
+        >
+        Save to Meal Plan
+        </button>
+
         <Link to="/grocerylist" className="text-blue-600 underline">
           View Grocery List
         </Link>
@@ -140,6 +169,7 @@ export default function RecipeDetail() {
                   <span className="text-amber-700 font-medium">— Missing</span>
                 )}
               </span>
+            
               {!inPantry && (
                 <button
                   onClick={() => addToGrocery(ing)}
@@ -147,6 +177,7 @@ export default function RecipeDetail() {
                 >
                   Add to Grocery
                 </button>
+                
               )}
             </li>
           );

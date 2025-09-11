@@ -17,13 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from pantry.views import PantryItemViewSet, LocationViewSet
+from pantry.views import PantryItemViewSet, LocationViewSet, GroceryItemViewSet
 
 router = DefaultRouter()
 router.register(r'pantry', PantryItemViewSet)
 router.register(r'locations', LocationViewSet)
+router.register(r'grocery', GroceryItemViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),  # <-- key line
+    path('api/', include('pantry.urls')),
+    path('api/', include('mealplan.urls')), 
+    path('api/mealplan/', include('mealplan.urls')),
 ]
