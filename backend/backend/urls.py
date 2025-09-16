@@ -19,6 +19,11 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from pantry.views import PantryItemViewSet, LocationViewSet, GroceryItemViewSet
 from mealplan.views import MealPlanViewSet
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 
 router = DefaultRouter()
 router.register(r'pantry', PantryItemViewSet)
@@ -28,5 +33,6 @@ router.register(r'mealplan', MealPlanViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path('api/', include(router.urls)),
 ]
