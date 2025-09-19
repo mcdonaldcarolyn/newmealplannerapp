@@ -1,28 +1,37 @@
-// src/GroceryList.js
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-
-const API_URL = "http://127.0.0.1:8000/api/grocery/";
+import api from "./axiosConfig";  // ✅ custom axios instance
 
 export default function GroceryList() {
   const [grocery, setGrocery] = useState([]);
 
   // Fetch grocery list
   useEffect(() => {
-    axios.get(API_URL).then((res) => setGrocery(res.data));
+    api.get("grocery/")   // ✅ no need to repeat /api/
+      .then((res) => setGrocery(res.data))
+      .catch((err) => console.error("Error fetching grocery list:", err));
   }, []);
 
+  // Toggle item checked/unchecked
   const toggleItem = async (id, checked) => {
-    const updated = grocery.map((item) =>
-      item.id === id ? { ...item, checked: !checked } : item
-    );
-    setGrocery(updated);
-    await axios.patch(`${API_URL}${id}/`, { checked: !checked });
+    try {
+      const res = await api.patch(`grocery/${id}/`, { checked: !checked });
+      // Update state with patched item
+      setGrocery((prev) =>
+        prev.map((item) => (item.id === id ? res.data : item))
+      );
+    } catch (err) {
+      console.error("Error toggling grocery item:", err);
+    }
   };
 
+  // Remove item
   const removeItem = async (id) => {
-    await axios.delete(`${API_URL}${id}/`);
-    setGrocery(grocery.filter((item) => item.id !== id));
+    try {
+      await api.delete(`grocery/${id}/`);
+      setGrocery((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      console.error("Error deleting grocery item:", err);
+    }
   };
 
   return (
