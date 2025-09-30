@@ -14,11 +14,24 @@ function Pantry() {
 
   const PANTRY_API = "http://127.0.0.1:8000/api/pantry/";
   const LOC_API = "http://127.0.0.1:8000/api/locations/";
-
+  const api = axios.create({
+    baseURL: "http://127.0.0.1:8000/api/", // backend API root
+  });
+  
   // Load pantry + locations
   useEffect(() => {
-    axios.get(PANTRY_API).then((res) => setPantry(res.data));
-    axios.get(LOC_API).then((res) => setLocations(res.data));
+    const fetchData = async () => {
+      try {
+        const pantryRes = await api.get("pantry/");   // uses JWT token
+        setPantry(pantryRes.data);
+  
+        const locRes = await api.get("locations/");   // also secured
+        setLocations(locRes.data);
+      } catch (err) {
+        console.error("Error loading pantry or locations:", err);
+      }
+    };
+    fetchData();
   }, []);
 
   // Add item to pantry
@@ -31,6 +44,7 @@ function Pantry() {
       unit: form.unit,
       location_id: form.location_id || null,
     };
+    await api.post("pantry/", newItem);
 
     const res = await axios.post(PANTRY_API, newItem);
     setPantry([...pantry, res.data]);

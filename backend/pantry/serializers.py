@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, viewsets, permissions 
 from .models import PantryItem, Location, GroceryItem
 
 
@@ -11,8 +11,12 @@ class LocationSerializer(serializers.ModelSerializer):
 class PantryItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PantryItem
-        fields = '__all__'
+        fields = fields = ['id', 'name', 'quantity', 'unit', 'location', 'user']
         read_only_fields = ["user"]
+
+    def create(self, validated_data):
+        request = self.context["request"]
+        return PantryItem.objects.create(user=request.user, **validated_data)
 
     # This allows creating/updating pantry items with a location ID
     location_id = serializers.PrimaryKeyRelatedField(
