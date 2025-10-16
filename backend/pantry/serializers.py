@@ -9,15 +9,6 @@ class LocationSerializer(serializers.ModelSerializer):
         read_only_fields = ["user"] 
 
 class PantryItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PantryItem
-        fields = fields = ['id', 'name', 'quantity', 'unit', 'location', 'user']
-        read_only_fields = ["user"]
-
-    def create(self, validated_data):
-        request = self.context["request"]
-        return PantryItem.objects.create(user=request.user, **validated_data)
-
     # This allows creating/updating pantry items with a location ID
     location_id = serializers.PrimaryKeyRelatedField(
         queryset=Location.objects.all(),
@@ -26,10 +17,17 @@ class PantryItemSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
-    
+
     class Meta:
         model = PantryItem
-        fields = ['id', 'name', 'quantity', 'unit', 'location', 'location_id']
+        fields = ['id', 'name', 'quantity', 'unit', 'location', 'location_id', 'user']
+        read_only_fields = ["user"]
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            return PantryItem.objects.create(user=request.user, **validated_data)
+        return PantryItem.objects.create(**validated_data)
 
 class GroceryItemSerializer(serializers.ModelSerializer):
     class Meta:
