@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-
-const PANTRY_API = "http://127.0.0.1:8000/api/pantry/";
+import api from "./axiosConfig";
 
 function normalizeName(s = "") {
   return s.toLowerCase().replace(/[^a-z\s]/g, "").trim();
@@ -33,7 +32,7 @@ export default function RecipeDetail() {
               includeNutrition: false,
             },
           }),
-          axios.get(PANTRY_API),
+          api.get("pantry/"),
         ]);
         setRecipe(r.data);
         setPantry(p.data);
@@ -58,20 +57,14 @@ export default function RecipeDetail() {
   };
 
   const addToGrocery = async(ing) => {
-    const uniqueKey = `${id}-${ing.id || Date.now()}-${normalizeName(
-        ing.name || ing.nameClean || ing.original
-      )}`;
-
     const item = {
-      id: uniqueKey,
       name: ing.name || ing.nameClean || ing.original,
-      amount: ing.amount,
-      unit: ing.unit,
-      recipeId: Number(id),
+      amount: ing.amount || null,
+      unit: ing.unit || "",
       checked: false,
     };
     try {
-        const res = await axios.post("http://127.0.0.1:8000/api/grocery/", item);
+        const res = await api.post("grocery/", item);
 
         // avoid duplicates in React state
         if (!grocery.find((g) => g.id === res.data.id)) {
@@ -79,12 +72,13 @@ export default function RecipeDetail() {
         }
       } catch (e) {
         console.error("Error adding to grocery:", e);
-      } 
+        alert("Failed to add item to grocery list.");
+      }
   };
 
-    const addToMealPlan = async () => {
+  const addToMealPlan = async () => {
     try {
-      await axios.post("http://127.0.0.1:8000/api/mealplan/", {
+      await api.post("mealplan/", {
         date: new Date().toISOString().split("T")[0], // today by default
         recipe_id: recipe.id,
         title: recipe.title,
@@ -93,6 +87,7 @@ export default function RecipeDetail() {
       alert("Recipe saved to meal plan!");
     } catch (err) {
       console.error("Error saving meal plan:", err);
+      alert("Failed to save to meal plan.");
     }
   };
   
@@ -100,28 +95,30 @@ export default function RecipeDetail() {
     if (!recipe?.extendedIngredients) return;
 
     try {
-    const newItems = [];
-    for (const ing of recipe.extendedIngredients) {
-      if (!ingredientInPantry(ing)) {
-        const item = {
-          name: ing.name || ing.nameClean || ing.original,
-          amount: ing.amount,
-          unit: ing.unit,
-          checked: false,
-        };
+      const newItems = [];
+      for (const ing of recipe.extendedIngredients) {
+        if (!ingredientInPantry(ing)) {
+          const item = {
+            name: ing.name || ing.nameClean || ing.original,
+            amount: ing.amount || null,
+            unit: ing.unit || "",
+            checked: false,
+          };
 
-        // Only add if not already in list
-        if (!grocery.find((g) => g.name === item.name)) {
-          const res = await axios.post("http://127.0.0.1:8000/api/grocery/", item);
-          newItems.push(res.data);
+          // Only add if not already in list
+          if (!grocery.find((g) => g.name === item.name)) {
+            const res = await api.post("grocery/", item);
+            newItems.push(res.data);
+          }
         }
       }
-  }
-    setGrocery([...grocery, ...newItems]);
-        } catch (e) {
-        console.error("Error adding missing items:", e);
-        }
-    };
+      setGrocery([...grocery, ...newItems]);
+      alert(`Added ${newItems.length} items to grocery list!`);
+    } catch (e) {
+      console.error("Error adding missing items:", e);
+      alert("Failed to add items to grocery list.");
+    }
+  };
    
 
   if (error) return <p className="p-4 text-red-700">{error}</p>;

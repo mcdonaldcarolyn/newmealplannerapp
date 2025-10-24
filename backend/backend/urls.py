@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from pantry.views import PantryItemViewSet, LocationViewSet, GroceryItemViewSet
+from pantry.views import PantryItemViewSet, LocationViewSet, GroceryItemViewSet, register_user
 from mealplan.views import MealPlanViewSet
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -33,6 +33,8 @@ router.register(r'mealplan', MealPlanViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path('api/register/', register_user, name='register'),
     path('api/', include(router.urls)),
 ]

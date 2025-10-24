@@ -17,17 +17,13 @@ class PantryItemSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
+    # This returns the full location object when reading
+    location = LocationSerializer(read_only=True)
 
     class Meta:
         model = PantryItem
         fields = ['id', 'name', 'quantity', 'unit', 'location', 'location_id', 'user']
         read_only_fields = ["user"]
-
-    def create(self, validated_data):
-        request = self.context.get("request")
-        if request and hasattr(request, 'user') and request.user.is_authenticated:
-            return PantryItem.objects.create(user=request.user, **validated_data)
-        return PantryItem.objects.create(**validated_data)
 
 class GroceryItemSerializer(serializers.ModelSerializer):
     class Meta:
