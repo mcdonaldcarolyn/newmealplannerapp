@@ -182,16 +182,22 @@ function Pantry() {
                       {item.quantity} {item.unit}
                     </span>
                   </span>
-                  <button
-                    onClick={() =>
-                      api.delete(`pantry/${item.id}/`).then(() =>
-                        setPantry(pantry.filter((i) => i.id !== item.id))
-                      )
-                    }
-                    className="text-red-600 hover:text-red-800 hover:underline text-sm"
-                  >
-                    Delete
-                  </button>
+                  <span className="text-gray-600 text-sm">
+                    ({" "}
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        api.delete(`pantry/${item.id}/`).then(() =>
+                          setPantry(pantry.filter((i) => i.id !== item.id))
+                        );
+                      }}
+                      className="text-red-600 hover:text-red-800 hover:underline"
+                    >
+                      delete
+                    </a>
+                    {" "})
+                  </span>
                 </li>
               ))}
             </ul>

@@ -44,7 +44,7 @@ function App() {
   }
 
   return (
-     <div>
+     <div className="torn-border notebook-page">
       <h1>Meal Planner App</h1>
 
       {isAuthenticated && (
@@ -66,7 +66,7 @@ function App() {
               <Link to='/meal-plan'>Meal Plan</Link>
             </li>
             <li>
-              <button onClick={handleLogout} className="text-red-600">Logout</button>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }} className="text-red-600">Logout</a>
             </li>
           </ul>
         </nav>

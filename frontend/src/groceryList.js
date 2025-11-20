@@ -118,12 +118,17 @@ export default function GroceryList() {
                     {item.name}
                   </span>
                 </label>
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="text-red-600 hover:text-red-800 hover:underline text-sm"
-                >
-                  Delete
-                </button>
+                <span className="text-gray-600 text-sm">
+                  ({" "}
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); removeItem(item.id); }}
+                    className="text-red-600 hover:text-red-800 hover:underline"
+                  >
+                    delete
+                  </a>
+                  {" "})
+                </span>
               </li>
             ))}
           </ul>
